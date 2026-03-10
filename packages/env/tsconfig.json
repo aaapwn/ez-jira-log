@@ -1,0 +1,3 @@
+{
+  "extends": "@ez-jira-log/config/tsconfig.base.json"
+}

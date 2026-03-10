@@ -1,0 +1,24 @@
+{
+  "name": "@ez-jira-log/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@ez-jira-log/db": "workspace:*",
+    "@ez-jira-log/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@ez-jira-log/config": "workspace:*",
+    "typescript": "^5"
+  }
+}
