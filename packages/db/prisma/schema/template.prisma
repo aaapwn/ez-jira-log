@@ -1,0 +1,33 @@
+model WorklogTemplate {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  issueKey     String?
+  comment      String
+  defaultHours Float
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("worklog_template")
+}
+
+/// A bundle of worklog entries applied together.
+/// Each item: { issueKey?, comment, hours, startTime? }
+model TemplateSet {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  items    Json
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("template_set")
+}

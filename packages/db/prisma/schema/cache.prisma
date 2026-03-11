@@ -1,0 +1,18 @@
+enum ActivitySource {
+  GITLAB
+  JIRA
+  CALENDAR
+}
+
+model ActivityCache {
+  id        String         @id @default(cuid())
+  userId    String
+  date      DateTime       @db.Date
+  source    ActivitySource
+  data      Json
+  fetchedAt DateTime       @default(now())
+
+  @@unique([userId, date, source])
+  @@index([userId, date])
+  @@map("activity_cache")
+}

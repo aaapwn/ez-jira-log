@@ -1,9 +1,12 @@
 import { Toaster } from "@ez-jira-log/ui/components/sonner";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Outlet, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { queryClient } from "@/lib/query-client";
 
 import "../index.css";
 
@@ -14,11 +17,11 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   head: () => ({
     meta: [
       {
-        title: "ez-jira-log",
+        title: "EZ-Log",
       },
       {
         name: "description",
-        content: "ez-jira-log is a web application",
+        content: "The Developer's Worklog Copilot",
       },
     ],
     links: [
@@ -32,7 +35,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <HeadContent />
       <ThemeProvider
         attribute="class"
@@ -40,13 +43,16 @@ function RootComponent() {
         disableTransitionOnChange
         storageKey="vite-ui-theme"
       >
-        <div className="grid grid-rows-[auto_1fr] h-svh">
+        <div className="grid grid-rows-[auto_1fr] min-h-svh">
           <Header />
-          <Outlet />
+          <main className="overflow-y-auto">
+            <Outlet />
+          </main>
         </div>
         <Toaster richColors />
       </ThemeProvider>
+      <ReactQueryDevtools position="bottom" />
       <TanStackRouterDevtools position="bottom-left" />
-    </>
+    </QueryClientProvider>
   );
 }

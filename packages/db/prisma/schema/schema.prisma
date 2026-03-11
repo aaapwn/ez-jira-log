@@ -1,8 +1,9 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated"
-  moduleFormat = "esm"
-  runtime = "bun"
+  provider       = "prisma-client"
+  output         = "../generated"
+  moduleFormat   = "esm"
+  runtime        = "bun"
+  binaryTargets  = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-1.1.x"]
 }
 
 datasource db {

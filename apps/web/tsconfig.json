@@ -13,7 +13,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@ez-jira-log/ui/*": ["../../packages/ui/src/*"]
+      "@ez-jira-log/ui/*": ["../../packages/ui/src/*"],
+      "server/*": ["../server/*"]
     }
   }
 }
