@@ -12,6 +12,8 @@ RUN bun install
 
 ENV NODE_ENV=production
 
+RUN echo "DATABASE_URL=${DATABASE_URL}" > ./apps/server/.env
+
 RUN bunx turbo db:generate
 
 RUN bun build \
