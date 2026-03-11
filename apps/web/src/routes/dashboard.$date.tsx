@@ -580,58 +580,101 @@ function DayDetailPage() {
                   const { wl } = item;
                   const tr = getWorklogTimeRange(wl.started, wl.hours);
                   const isConfirming = confirmDeleteId === wl.id;
+                  const deleteBtn = isConfirming ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteWorklog(wl.issueKey, wl.id)}
+                      disabled={deleteMutation.isPending}
+                      className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 animate-pulse"
+                      title="Click again to confirm deletion"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setConfirmDeleteId(wl.id)}
+                      className="h-7 w-7 text-muted-foreground/40 hover:text-destructive md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                      title="Delete from Jira"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  );
                   return (
                     <div
                       key={item.id}
-                      className="group grid grid-cols-[auto_110px_6px_110px_40px_100px_1fr_1fr_auto_36px] items-center gap-1.5 rounded-lg border border-ocean-300/20 bg-ocean-300/5 p-2.5"
+                      className="group rounded-lg border border-ocean-300/20 bg-ocean-300/5 p-2.5"
                     >
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-ocean-300" />
-                      <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.startTime}</span>
-                      <span className="text-center text-ocean-200/40">–</span>
-                      <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.endTime}</span>
-                      <span className="text-[10px] font-mono tabular-nums text-ocean-300/70 text-center">
-                        {wl.hours.toFixed(wl.hours % 1 === 0 ? 0 : 1)}h
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="shrink-0 font-mono text-[11px] bg-ocean-400/15 text-ocean-300 border-ocean-300/20"
-                      >
-                        {wl.issueKey}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground truncate">
-                        {wl.issueSummary}
-                      </span>
-                      <span className="text-xs text-muted-foreground/60 truncate">
-                        {wl.comment || ""}
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="shrink-0 text-[10px] px-1.5 py-0 border-ocean-300/30 text-ocean-300"
-                      >
-                        Logged
-                      </Badge>
-                      {isConfirming ? (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteWorklog(wl.issueKey, wl.id)}
-                          disabled={deleteMutation.isPending}
-                          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 animate-pulse"
-                          title="Click again to confirm deletion"
+                      {/* Desktop */}
+                      <div className="hidden md:grid grid-cols-[auto_110px_6px_110px_40px_100px_1fr_1fr_auto_36px] items-center gap-1.5">
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-ocean-300" />
+                        <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.startTime}</span>
+                        <span className="text-center text-ocean-200/40">–</span>
+                        <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.endTime}</span>
+                        <span className="text-[10px] font-mono tabular-nums text-ocean-300/70 text-center">
+                          {wl.hours.toFixed(wl.hours % 1 === 0 ? 0 : 1)}h
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="shrink-0 font-mono text-[11px] bg-ocean-400/15 text-ocean-300 border-ocean-300/20"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setConfirmDeleteId(wl.id)}
-                          className="h-7 w-7 text-muted-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Delete from Jira"
+                          {wl.issueKey}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {wl.issueSummary}
+                        </span>
+                        <span className="text-xs text-muted-foreground/60 truncate">
+                          {wl.comment || ""}
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 text-[10px] px-1.5 py-0 border-ocean-300/30 text-ocean-300"
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
+                          Logged
+                        </Badge>
+                        {deleteBtn}
+                      </div>
+                      {/* Mobile */}
+                      <div className="md:hidden flex flex-col gap-1.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-ocean-300" />
+                            <span className="text-xs tabular-nums text-ocean-200/70">{tr.startTime}</span>
+                            <span className="text-ocean-200/40">–</span>
+                            <span className="text-xs tabular-nums text-ocean-200/70">{tr.endTime}</span>
+                            <span className="text-[10px] font-mono tabular-nums text-ocean-300/70">
+                              {wl.hours.toFixed(wl.hours % 1 === 0 ? 0 : 1)}h
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Badge
+                              variant="outline"
+                              className="shrink-0 text-[10px] px-1.5 py-0 border-ocean-300/30 text-ocean-300"
+                            >
+                              Logged
+                            </Badge>
+                            {deleteBtn}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 pl-5">
+                          <Badge
+                            variant="secondary"
+                            className="shrink-0 font-mono text-[11px] bg-ocean-400/15 text-ocean-300 border-ocean-300/20"
+                          >
+                            {wl.issueKey}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {wl.issueSummary}
+                          </span>
+                        </div>
+                        {wl.comment && (
+                          <p className="text-xs text-muted-foreground/60 truncate pl-5">
+                            {wl.comment}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   );
                 }

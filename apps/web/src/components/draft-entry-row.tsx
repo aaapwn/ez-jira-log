@@ -48,57 +48,122 @@ export default function DraftEntryRow({
       : "—";
 
   return (
-    <div className="group grid grid-cols-[auto_110px_6px_110px_40px_100px_1fr_1fr_auto_36px] items-center gap-1.5 rounded-lg border border-amber-400/20 bg-amber-400/5 p-2.5">
-      <PenLine className="h-4 w-4 shrink-0 text-amber-400" />
-      <Input
-        type="time"
-        value={entry.startTime ?? ""}
-        onChange={(e) => handleTimeChange("startTime", e.target.value)}
-        className="h-7 text-xs tabular-nums bg-transparent border-border/40"
-      />
-      <span className="text-center text-muted-foreground/50">–</span>
-      <Input
-        type="time"
-        value={entry.endTime ?? ""}
-        onChange={(e) => handleTimeChange("endTime", e.target.value)}
-        className="h-7 text-xs tabular-nums bg-transparent border-border/40"
-      />
-      <span className="text-[10px] font-mono tabular-nums text-amber-300/70 text-center">
-        {hoursLabel}
-      </span>
-      <Input
-        value={entry.issueKey}
-        onChange={(e) => onUpdate(entry.id, "issueKey", e.target.value)}
-        placeholder="PROJ-123"
-        className="h-7 text-xs font-mono bg-transparent border-border/40"
-      />
-      <span className="text-xs text-muted-foreground truncate px-1 flex items-center gap-1">
-        {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin text-ocean-300/60" />
-        ) : (
-          entry.description || "—"
-        )}
-      </span>
-      <Input
-        value={entry.comment}
-        onChange={(e) => onUpdate(entry.id, "comment", e.target.value)}
-        placeholder="Work description..."
-        className="h-7 text-xs bg-transparent border-border/40"
-      />
-      <Badge
-        variant="outline"
-        className="shrink-0 text-[10px] px-1.5 py-0 border-amber-400/30 text-amber-400"
-      >
-        Draft
-      </Badge>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onRemove(entry.id)}
-        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </Button>
+    <div className="group rounded-lg border border-amber-400/20 bg-amber-400/5 p-2.5">
+      {/* Desktop: single-row grid */}
+      <div className="hidden md:grid grid-cols-[auto_110px_6px_110px_40px_100px_1fr_1fr_auto_36px] items-center gap-1.5">
+        <PenLine className="h-4 w-4 shrink-0 text-amber-400" />
+        <Input
+          type="time"
+          value={entry.startTime ?? ""}
+          onChange={(e) => handleTimeChange("startTime", e.target.value)}
+          className="h-7 text-xs tabular-nums bg-transparent border-border/40"
+        />
+        <span className="text-center text-muted-foreground/50">–</span>
+        <Input
+          type="time"
+          value={entry.endTime ?? ""}
+          onChange={(e) => handleTimeChange("endTime", e.target.value)}
+          className="h-7 text-xs tabular-nums bg-transparent border-border/40"
+        />
+        <span className="text-[10px] font-mono tabular-nums text-amber-300/70 text-center">
+          {hoursLabel}
+        </span>
+        <Input
+          value={entry.issueKey}
+          onChange={(e) => onUpdate(entry.id, "issueKey", e.target.value)}
+          placeholder="PROJ-123"
+          className="h-7 text-xs font-mono bg-transparent border-border/40"
+        />
+        <span className="text-xs text-muted-foreground truncate px-1 flex items-center gap-1">
+          {isLoading ? (
+            <Loader2 className="h-3 w-3 animate-spin text-ocean-300/60" />
+          ) : (
+            entry.description || "—"
+          )}
+        </span>
+        <Input
+          value={entry.comment}
+          onChange={(e) => onUpdate(entry.id, "comment", e.target.value)}
+          placeholder="Work description..."
+          className="h-7 text-xs bg-transparent border-border/40"
+        />
+        <Badge
+          variant="outline"
+          className="shrink-0 text-[10px] px-1.5 py-0 border-amber-400/30 text-amber-400"
+        >
+          Draft
+        </Badge>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemove(entry.id)}
+          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      {/* Mobile: stacked card */}
+      <div className="md:hidden flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <PenLine className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+            <Input
+              type="time"
+              value={entry.startTime ?? ""}
+              onChange={(e) => handleTimeChange("startTime", e.target.value)}
+              className="h-7 w-[100px] text-xs tabular-nums bg-transparent border-border/40"
+            />
+            <span className="text-muted-foreground/50">–</span>
+            <Input
+              type="time"
+              value={entry.endTime ?? ""}
+              onChange={(e) => handleTimeChange("endTime", e.target.value)}
+              className="h-7 w-[100px] text-xs tabular-nums bg-transparent border-border/40"
+            />
+            <span className="text-[10px] font-mono tabular-nums text-amber-300/70">
+              {hoursLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge
+              variant="outline"
+              className="shrink-0 text-[10px] px-1.5 py-0 border-amber-400/30 text-amber-400"
+            >
+              Draft
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRemove(entry.id)}
+              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Input
+            value={entry.issueKey}
+            onChange={(e) => onUpdate(entry.id, "issueKey", e.target.value)}
+            placeholder="PROJ-123"
+            className="h-7 w-[100px] text-xs font-mono bg-transparent border-border/40"
+          />
+          <span className="text-xs text-muted-foreground truncate flex items-center gap-1 min-w-0">
+            {isLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin text-ocean-300/60" />
+            ) : (
+              entry.description || "—"
+            )}
+          </span>
+        </div>
+        <Input
+          value={entry.comment}
+          onChange={(e) => onUpdate(entry.id, "comment", e.target.value)}
+          placeholder="Work description..."
+          className="h-7 text-xs bg-transparent border-border/40"
+        />
+      </div>
     </div>
   );
 }
