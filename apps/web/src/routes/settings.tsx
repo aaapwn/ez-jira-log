@@ -167,7 +167,13 @@ function SettingsPage() {
     setRunningAction(action);
     try {
       const { data, error } = await api.checkin[action].post();
-      if (error) throw error;
+      if (error) {
+        const msg = typeof error === "object" && error !== null && "error" in error
+          ? String((error as any).error)
+          : JSON.stringify(error);
+        toast.error(`${label} failed: ${msg}`);
+        return;
+      }
       const result = data as any;
       if (result.processed > 0) {
         toast.success(`${label} done!`);

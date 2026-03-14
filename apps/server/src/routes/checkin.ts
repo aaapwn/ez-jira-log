@@ -1,38 +1,39 @@
-import { env } from "@ez-jira-log/env/server";
 import { Elysia } from "elysia";
 
 import { getAuthUserId } from "../middleware/auth";
 import { runCheckIn, runCheckOut, runMonthlyReminder } from "../services/checkin";
 
-async function requireDevAuth(request: Request, set: { status?: number | string }) {
-  if (env.NODE_ENV !== "development") {
-    set.status = 501;
-    return { error: "Not Implemented" };
-  }
-  try {
-    return await getAuthUserId(request);
-  } catch {
-    set.status = 401;
-    return { error: "Unauthorized — call this from the browser while logged in" };
-  }
-}
-
 export const checkinRoutes = new Elysia({ prefix: "/checkin" })
   .post("/test-checkin", async ({ request, set }) => {
-    const result = await requireDevAuth(request, set);
-    if (typeof result !== "string") return result;
-    const actionResult = await runCheckIn(result);
-    return { success: true, action: "checkin", ...actionResult };
+    let userId: string;
+    try {
+      userId = await getAuthUserId(request);
+    } catch {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+    const result = await runCheckIn(userId);
+    return { success: true, action: "checkin", ...result };
   })
   .post("/test-checkout", async ({ request, set }) => {
-    const result = await requireDevAuth(request, set);
-    if (typeof result !== "string") return result;
-    const actionResult = await runCheckOut(result);
-    return { success: true, action: "checkout", ...actionResult };
+    let userId: string;
+    try {
+      userId = await getAuthUserId(request);
+    } catch {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+    const result = await runCheckOut(userId);
+    return { success: true, action: "checkout", ...result };
   })
   .post("/test-monthly-remind", async ({ request, set }) => {
-    const result = await requireDevAuth(request, set);
-    if (typeof result !== "string") return result;
-    const actionResult = await runMonthlyReminder(result);
-    return { success: true, action: "monthly-remind", ...actionResult };
+    let userId: string;
+    try {
+      userId = await getAuthUserId(request);
+    } catch {
+      set.status = 401;
+      return { error: "Unauthorized" };
+    }
+    const result = await runMonthlyReminder(userId);
+    return { success: true, action: "monthly-remind", ...result };
   });
