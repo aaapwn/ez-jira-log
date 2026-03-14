@@ -1,7 +1,7 @@
 import prisma from "@ez-jira-log/db";
 
 import { refreshAccessToken } from "./calendar";
-import { sendNotification } from "./notification";
+import { sendNotification, type NotificationResult } from "./notification";
 import { getColumnForDay, tickCheckbox } from "./sheets";
 
 function getTodayInTimezone(tz: string): Date {
@@ -15,6 +15,7 @@ export interface CheckActionResult {
   skipped: number;
   errors: string[];
   details: string[];
+  notification?: NotificationResult;
 }
 
 async function processCheckAction(type: "checkin" | "checkout", userId?: string): Promise<CheckActionResult> {
@@ -78,13 +79,17 @@ async function processCheckAction(type: "checkin" | "checkout", userId?: string)
         timeZone: config.timezone,
       });
 
-      await sendNotification(config.userId, {
+      const notifResult = await sendNotification(config.userId, {
         title: `${label} ✓`,
         body: `${label} at ${timeStr} (column ${column}, row ${row})`,
       });
+      result.notification = notifResult;
 
       result.processed++;
       result.details.push(`${config.userId}: ${column}${row} ✓`);
+      if (notifResult.subscriptions === 0) {
+        result.details.push("No push subscriptions — enable notifications in Settings");
+      }
       console.log(`[${type}] ${config.userId}: ${column}${row} ✓`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
@@ -126,13 +131,17 @@ export async function runMonthlyReminder(userId?: string): Promise<CheckActionRe
 
   for (const config of configs) {
     try {
-      await sendNotification(config.userId, {
+      const notifResult = await sendNotification(config.userId, {
         title: "New month — update check-in config",
         body: "Please update your check-in/check-out row numbers in Settings for this month.",
         url: "/settings",
       });
+      result.notification = notifResult;
       result.processed++;
       result.details.push(`${config.userId}: notified`);
+      if (notifResult.subscriptions === 0) {
+        result.details.push("No push subscriptions — enable notifications in Settings");
+      }
       console.log(`[monthly-remind] ${config.userId} notified`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";

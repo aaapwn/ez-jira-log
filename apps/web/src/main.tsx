@@ -17,6 +17,12 @@ declare module "@tanstack/react-router" {
   }
 }
 
+if (import.meta.env.DEV && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw-dev.js").catch((err) => {
+    console.warn("Dev service worker registration failed:", err);
+  });
+}
+
 const rootElement = document.getElementById("app");
 
 if (!rootElement) {

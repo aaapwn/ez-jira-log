@@ -177,6 +177,9 @@ function SettingsPage() {
       const result = data as any;
       if (result.processed > 0) {
         toast.success(`${label} done!`);
+        if (result.notification?.subscriptions === 0) {
+          toast.warning("No push subscriptions — click \"Allow Notifications\" above to receive alerts");
+        }
       } else if (result.errors?.length > 0) {
         toast.error(`${label} failed: ${result.errors[0]}`);
       } else {

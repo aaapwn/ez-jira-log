@@ -23,7 +23,7 @@ export default defineConfig({
         theme_color: "#0c0c0c",
       },
       pwaAssets: { disabled: false, config: true },
-      devOptions: { enabled: true, type: "module" },
+      devOptions: { enabled: false },
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
