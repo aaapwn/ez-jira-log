@@ -135,14 +135,20 @@ function SettingsPage() {
     try {
       const permission = await Notification.requestPermission();
       setNotifPermission(permission);
-      if (permission === "granted") {
-        await subscribeToPush();
-        toast.success("Notifications enabled");
-      } else {
+      if (permission !== "granted") {
         toast.error("Notification permission denied");
+        return;
       }
+      toast.success("Permission granted — subscribing...");
     } catch {
-      toast.error("Failed to enable notifications");
+      toast.error("Failed to request notification permission");
+      return;
+    }
+    try {
+      await subscribeToPush();
+      toast.success("Push notifications registered!");
+    } catch (err) {
+      toast.error(`Push subscribe failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

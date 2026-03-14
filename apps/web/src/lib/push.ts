@@ -13,8 +13,29 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 export async function subscribeToPush(): Promise<void> {
-  const registration = await navigator.serviceWorker.ready;
+  if (!("serviceWorker" in navigator)) {
+    throw new Error("Service workers not supported");
+  }
+
+  const registration = await withTimeout(
+    navigator.serviceWorker.ready,
+    5000,
+    "Service worker ready",
+  );
+
+  if (!registration.pushManager) {
+    throw new Error("Push manager not available");
+  }
 
   const existing = await registration.pushManager.getSubscription();
   if (existing) {
