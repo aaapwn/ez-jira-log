@@ -16,6 +16,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export async function subscribeToPush(): Promise<void> {
   const registration = await navigator.serviceWorker.ready;
 
+  const existing = await registration.pushManager.getSubscription();
+  if (existing) {
+    await existing.unsubscribe();
+  }
+
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(env.VITE_VAPID_PUBLIC_KEY) as BufferSource,

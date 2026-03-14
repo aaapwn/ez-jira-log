@@ -17,9 +17,24 @@ declare module "@tanstack/react-router" {
   }
 }
 
-if (import.meta.env.DEV && "serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw-dev.js").catch((err) => {
-    console.warn("Dev service worker registration failed:", err);
+if ("serviceWorker" in navigator) {
+  const swUrl = import.meta.env.DEV ? "/sw-dev.js" : "/sw.js";
+
+  navigator.serviceWorker.getRegistrations().then(async (registrations) => {
+    for (const reg of registrations) {
+      if (reg.active?.scriptURL && !reg.active.scriptURL.endsWith(swUrl)) {
+        await reg.unregister();
+        console.log("[sw] Unregistered stale service worker:", reg.active.scriptURL);
+      }
+    }
+
+    const registration = await navigator.serviceWorker.register(swUrl);
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+    console.log("[sw] Registered:", swUrl);
+  }).catch((err) => {
+    console.warn("[sw] Registration failed:", err);
   });
 }
 
