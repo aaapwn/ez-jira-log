@@ -28,12 +28,13 @@ self.addEventListener("push", (event) => {
     title: string;
     body: string;
     url?: string;
+    icon?: string;
   };
 
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: "/logo.png",
+      icon: payload.icon || "/logo.png",
       badge: "/logo.png",
       data: { url: payload.url },
     }),

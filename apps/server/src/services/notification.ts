@@ -13,7 +13,7 @@ export interface NotificationResult {
 
 export async function sendNotification(
   userId: string,
-  payload: { title: string; body: string; url?: string },
+  payload: { title: string; body: string; url?: string; icon?: string },
 ): Promise<NotificationResult> {
   const subscriptions = await prisma.pushSubscription.findMany({
     where: { userId },

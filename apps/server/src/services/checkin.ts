@@ -72,16 +72,18 @@ async function processCheckAction(type: "checkin" | "checkout", userId?: string)
 
       await tickCheckbox(accessToken, config.sheetSpreadsheetId, config.sheetName, column, row);
 
+      const icon = type === "checkin" ? "☀️" : "🌙";
       const label = type === "checkin" ? "Checked in" : "Checked out";
-      const timeStr = today.toLocaleTimeString("th-TH", {
+      const timeStr = new Date().toLocaleTimeString("th-TH", {
         hour: "2-digit",
         minute: "2-digit",
         timeZone: config.timezone,
       });
 
       const notifResult = await sendNotification(config.userId, {
-        title: `${label} ✓`,
+        title: `${icon} ${label}`,
         body: `${label} at ${timeStr} (column ${column}, row ${row})`,
+        icon: type === "checkin" ? "/icons/checkin.svg" : "/icons/checkout.svg",
       });
       result.notification = notifResult;
 
@@ -97,8 +99,9 @@ async function processCheckAction(type: "checkin" | "checkout", userId?: string)
       console.error(`[${type}] Failed for user ${config.userId}:`, err);
       try {
         await sendNotification(config.userId, {
-          title: `${type === "checkin" ? "Check-in" : "Check-out"} failed`,
+          title: `❌ ${type === "checkin" ? "Check-in" : "Check-out"} failed`,
           body: `Could not update Google Sheet. ${msg}`,
+          icon: "/icons/error.svg",
         });
       } catch { /* notification failure is non-critical */ }
     }
@@ -132,9 +135,10 @@ export async function runMonthlyReminder(userId?: string): Promise<CheckActionRe
   for (const config of configs) {
     try {
       const notifResult = await sendNotification(config.userId, {
-        title: "New month — update check-in config",
+        title: "📅 New month — update config",
         body: "Please update your check-in/check-out row numbers in Settings for this month.",
         url: "/settings",
+        icon: "/icons/reminder.svg",
       });
       result.notification = notifResult;
       result.processed++;
