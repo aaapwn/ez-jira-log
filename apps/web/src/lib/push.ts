@@ -29,7 +29,7 @@ export async function subscribeToPush(): Promise<void> {
 
   const registration = await withTimeout(
     navigator.serviceWorker.ready,
-    5000,
+    10000,
     "Service worker ready",
   );
 
