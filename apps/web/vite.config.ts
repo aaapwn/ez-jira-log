@@ -25,7 +25,7 @@ export default defineConfig({
       pwaAssets: { disabled: false, config: true },
       devOptions: { enabled: false },
       injectManifest: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        injectionPoint: undefined,
       },
     }),
   ],

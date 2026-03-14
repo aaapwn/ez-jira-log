@@ -1,14 +1,18 @@
 /// <reference lib="webworker" />
-import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-
-declare let self: ServiceWorkerGlobalScope;
+/* eslint-disable no-var */
+declare var self: ServiceWorkerGlobalScope;
+export type {};
 
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((names) =>
+      Promise.all(names.map((name) => caches.delete(name))),
+    ).then(() => self.clients.claim()),
+  );
 });
 
 self.addEventListener("message", (event) => {
@@ -16,9 +20,6 @@ self.addEventListener("message", (event) => {
     self.skipWaiting();
   }
 });
-
-cleanupOutdatedCaches();
-precacheAndRoute(self.__WB_MANIFEST);
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
