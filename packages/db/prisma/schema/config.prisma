@@ -8,6 +8,12 @@ model UserConfig {
 
   googleRefreshToken String?
 
+  sheetSpreadsheetId String?
+  sheetName          String?
+  sheetStartColumn   String?
+  sheetCheckInRow    Int?
+  sheetCheckOutRow   Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

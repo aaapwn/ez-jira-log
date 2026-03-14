@@ -11,17 +11,21 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
+    "@elysiajs/cron": "^1.4.1",
     "@ez-jira-log/auth": "workspace:*",
     "@ez-jira-log/db": "workspace:*",
     "@ez-jira-log/env": "workspace:*",
+    "asn1.js": "^5.4.1",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "elysia": "^1.4.21",
+    "web-push": "^3.6.7",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@ez-jira-log/config": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/web-push": "^3.6.4",
     "tsdown": "^0.16.5",
     "typescript": "^5"
   }

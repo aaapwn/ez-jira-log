@@ -8,9 +8,10 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
-  config        UserConfig?
-  templates     WorklogTemplate[]
-  templateSets  TemplateSet[]
+  config             UserConfig?
+  templates          WorklogTemplate[]
+  templateSets       TemplateSet[]
+  pushSubscriptions  PushSubscription[]
 
   @@unique([email])
   @@map("user")

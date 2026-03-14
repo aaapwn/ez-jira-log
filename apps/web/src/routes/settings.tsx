@@ -6,6 +6,9 @@ import { Label } from "@ez-jira-log/ui/components/label";
 import { Skeleton } from "@ez-jira-log/ui/components/skeleton";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
+  AlertTriangle,
+  Bell,
+  BellOff,
   Calendar,
   CheckCircle2,
   Clock,
@@ -13,12 +16,15 @@ import {
   ExternalLink,
   GitBranch,
   Layers,
+  LogIn,
+  LogOut,
   Plus,
   Save,
+  Sheet,
   Ticket,
   Trash2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import TemplateForm from "@/components/template-form";
@@ -39,6 +45,7 @@ import {
 import { useUpdateUserConfig, useUserConfig } from "@/hooks/use-user-config";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/eden";
+import { subscribeToPush } from "@/lib/push";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -74,9 +81,31 @@ function SettingsPage() {
   const [showCreateSet, setShowCreateSet] = useState(false);
   const [editingSet, setEditingSet] = useState<string | null>(null);
 
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    typeof Notification !== "undefined" ? Notification.permission : "default",
+  );
+
+  const [sheetSpreadsheetId, setSheetSpreadsheetId] = useState<string | null>(null);
+  const [sheetName, setSheetName] = useState<string | null>(null);
+  const [sheetStartColumn, setSheetStartColumn] = useState<string | null>(null);
+  const [sheetCheckInRow, setSheetCheckInRow] = useState<number | null>(null);
+  const [sheetCheckOutRow, setSheetCheckOutRow] = useState<number | null>(null);
+
   const displayHours = workingHours ?? config?.workingHours ?? 8;
   const displayTimezone = timezone ?? config?.timezone ?? "Asia/Bangkok";
   const displayComment = defaultComment ?? config?.defaultComment ?? "";
+
+  const displaySheetId = sheetSpreadsheetId ?? config?.sheetSpreadsheetId ?? "";
+  const displaySheetName = sheetName ?? config?.sheetName ?? "";
+  const displayStartColumn = sheetStartColumn ?? config?.sheetStartColumn ?? "";
+  const displayCheckInRow = sheetCheckInRow ?? config?.sheetCheckInRow ?? "";
+  const displayCheckOutRow = sheetCheckOutRow ?? config?.sheetCheckOutRow ?? "";
+
+  useEffect(() => {
+    if (typeof Notification !== "undefined") {
+      setNotifPermission(Notification.permission);
+    }
+  }, []);
 
   const handleSaveConfig = async () => {
     try {
@@ -100,6 +129,82 @@ function SettingsPage() {
       toast.error("Failed to get calendar auth URL");
     }
   };
+
+  const handleAllowNotifications = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      setNotifPermission(permission);
+      if (permission === "granted") {
+        await subscribeToPush();
+        toast.success("Notifications enabled");
+      } else {
+        toast.error("Notification permission denied");
+      }
+    } catch {
+      toast.error("Failed to enable notifications");
+    }
+  };
+
+  const handleSaveSheetConfig = async () => {
+    try {
+      await updateConfig.mutateAsync({
+        sheetSpreadsheetId: displaySheetId || null,
+        sheetName: displaySheetName || null,
+        sheetStartColumn: displayStartColumn || null,
+        sheetCheckInRow: displayCheckInRow ? Number(displayCheckInRow) : null,
+        sheetCheckOutRow: displayCheckOutRow ? Number(displayCheckOutRow) : null,
+      });
+      toast.success("Sheet config saved");
+    } catch {
+      toast.error("Failed to save sheet config");
+    }
+  };
+
+  const [runningAction, setRunningAction] = useState<string | null>(null);
+
+  const handleRunAction = async (action: "test-checkin" | "test-checkout") => {
+    const label = action === "test-checkin" ? "Check-in" : "Check-out";
+    setRunningAction(action);
+    try {
+      const { data, error } = await api.checkin[action].post();
+      if (error) throw error;
+      const result = data as any;
+      if (result.processed > 0) {
+        toast.success(`${label} done!`);
+      } else if (result.errors?.length > 0) {
+        toast.error(`${label} failed: ${result.errors[0]}`);
+      } else {
+        toast.warning(`${label}: ${result.details?.[0] || "Nothing processed"}`);
+      }
+    } catch (err) {
+      toast.error(`${label} failed: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setRunningAction(null);
+    }
+  };
+
+  const needsNewMonthConfig = (() => {
+    if (!config?.hasSheetConfig || !config.updatedAt) return false;
+    const updated = new Date(config.updatedAt);
+    const now = new Date();
+    return updated.getMonth() !== now.getMonth() || updated.getFullYear() !== now.getFullYear();
+  })();
+
+  const todayColumn = (() => {
+    if (!displayStartColumn) return null;
+    const day = new Date().getDate();
+    const startIdx =
+      displayStartColumn.split("").reduce((acc, c) => acc * 26 + c.charCodeAt(0) - 64, 0) - 1;
+    const targetIdx = startIdx + (day - 1) * 2;
+    let n = targetIdx + 1;
+    let result = "";
+    while (n > 0) {
+      n--;
+      result = String.fromCharCode((n % 26) + 65) + result;
+      n = Math.floor(n / 26);
+    }
+    return result;
+  })();
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
@@ -209,10 +314,20 @@ function SettingsPage() {
               </div>
             </div>
             {config?.hasGoogleCalendar ? (
-              <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                Connected
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Connected
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[10px] text-muted-foreground h-6 px-2"
+                  onClick={handleConnectCalendar}
+                >
+                  Reconnect
+                </Button>
+              </div>
             ) : (
               <Button
                 variant="outline"
@@ -226,6 +341,204 @@ function SettingsPage() {
             )}
           </div>
         </div>
+      </Card>
+
+      <Card className="border-border/50 bg-card/70 backdrop-blur-sm p-6 space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Notifications
+        </h2>
+        <div className="flex items-center justify-between rounded-xl border border-border/40 bg-muted/20 p-3.5 transition-colors hover:bg-muted/30">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-ocean-300/10 text-ocean-300">
+              {notifPermission === "granted" ? (
+                <Bell className="h-4 w-4" />
+              ) : (
+                <BellOff className="h-4 w-4" />
+              )}
+            </div>
+            <div>
+              <div className="text-sm font-medium">Push Notifications</div>
+              <div className="text-xs text-muted-foreground">
+                {notifPermission === "granted"
+                  ? "Notifications are enabled"
+                  : notifPermission === "denied"
+                    ? "Notifications are blocked — reset in browser settings"
+                    : "Allow notifications for check-in/check-out alerts"}
+              </div>
+            </div>
+          </div>
+          {notifPermission === "granted" ? (
+            <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
+              <CheckCircle2 className="h-3 w-3" />
+              Enabled
+            </Badge>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1"
+              onClick={handleAllowNotifications}
+              disabled={notifPermission === "denied"}
+            >
+              <Bell className="h-3.5 w-3.5" />
+              Allow
+            </Button>
+          )}
+        </div>
+      </Card>
+
+      <Card className={`border-border/50 bg-card/70 backdrop-blur-sm p-6 space-y-5 ${needsNewMonthConfig ? "ring-2 ring-destructive/50" : ""}`}>
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Google Sheets Check-in
+          </h2>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">
+            Auto check-in/check-out on your attendance sheet
+          </p>
+        </div>
+
+        {needsNewMonthConfig && (
+          <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">
+            <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+            <span className="text-xs text-destructive font-medium">
+              New month detected — please update the check-in/check-out row numbers below and save.
+            </span>
+          </div>
+        )}
+
+        {configLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="sheet-id" className="text-xs text-muted-foreground">
+                Spreadsheet ID
+              </Label>
+              <Input
+                id="sheet-id"
+                value={displaySheetId}
+                onChange={(e) => setSheetSpreadsheetId(e.target.value)}
+                placeholder="e.g., 1ogAajWSZTsZHeBXK-..."
+                className="bg-background/50 font-mono text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="sheet-name" className="text-xs text-muted-foreground">
+                  Sheet Name (tab)
+                </Label>
+                <Input
+                  id="sheet-name"
+                  value={displaySheetName}
+                  onChange={(e) => setSheetName(e.target.value)}
+                  placeholder="e.g., Sheet1"
+                  className="bg-background/50"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="start-col" className="text-xs text-muted-foreground">
+                  Start Column (day 1)
+                </Label>
+                <Input
+                  id="start-col"
+                  value={displayStartColumn}
+                  onChange={(e) => setSheetStartColumn(e.target.value.toUpperCase())}
+                  placeholder="e.g., F"
+                  className="bg-background/50 font-mono uppercase"
+                  maxLength={3}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="checkin-row" className="text-xs text-muted-foreground">
+                  Check-in Row
+                </Label>
+                <Input
+                  id="checkin-row"
+                  type="number"
+                  value={displayCheckInRow}
+                  onChange={(e) => setSheetCheckInRow(parseInt(e.target.value) || null)}
+                  placeholder="e.g., 53"
+                  min={1}
+                  className="bg-background/50 tabular-nums"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="checkout-row" className="text-xs text-muted-foreground">
+                  Check-out Row
+                </Label>
+                <Input
+                  id="checkout-row"
+                  type="number"
+                  value={displayCheckOutRow}
+                  onChange={(e) => setSheetCheckOutRow(parseInt(e.target.value) || null)}
+                  placeholder="e.g., 54"
+                  min={1}
+                  className="bg-background/50 tabular-nums"
+                />
+              </div>
+            </div>
+            {todayColumn && (
+              <div className="flex items-center gap-2 rounded-lg border border-ocean-300/20 bg-ocean-300/5 px-3 py-2">
+                <Sheet className="h-3.5 w-3.5 text-ocean-300" />
+                <span className="text-xs text-muted-foreground">
+                  Today (day {new Date().getDate()}) column:{" "}
+                  <span className="font-mono font-semibold text-ocean-300">{todayColumn}</span>
+                  {displayCheckInRow && (
+                    <>
+                      {" — Check-in: "}
+                      <span className="font-mono font-semibold text-ocean-300">
+                        {todayColumn}{displayCheckInRow}
+                      </span>
+                    </>
+                  )}
+                  {displayCheckOutRow && (
+                    <>
+                      {" — Check-out: "}
+                      <span className="font-mono font-semibold text-ocean-300">
+                        {todayColumn}{displayCheckOutRow}
+                      </span>
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                onClick={handleSaveSheetConfig}
+                disabled={updateConfig.isPending}
+                className="gap-1.5 bg-gradient-to-r from-ocean-400 to-ocean-300 text-white hover:from-ocean-400/90 hover:to-ocean-300/90"
+              >
+                <Save className="h-3.5 w-3.5" />
+                {updateConfig.isPending ? "Saving..." : "Save Sheet Config"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => handleRunAction("test-checkin")}
+                disabled={!!runningAction || !config?.hasSheetConfig}
+              >
+                <LogIn className="h-3 w-3" />
+                {runningAction === "test-checkin" ? "Running..." : "Check-in Now"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => handleRunAction("test-checkout")}
+                disabled={!!runningAction || !config?.hasSheetConfig}
+              >
+                <LogOut className="h-3 w-3" />
+                {runningAction === "test-checkout" ? "Running..." : "Check-out Now"}
+              </Button>
+            </div>
+          </>
+        )}
       </Card>
 
       <Card className="border-border/50 bg-card/70 backdrop-blur-sm p-6 space-y-4">

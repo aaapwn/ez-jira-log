@@ -26,6 +26,11 @@ export function useUpdateUserConfig() {
       workingHours?: number;
       timezone?: string;
       defaultComment?: string | null;
+      sheetSpreadsheetId?: string | null;
+      sheetName?: string | null;
+      sheetStartColumn?: string | null;
+      sheetCheckInRow?: number | null;
+      sheetCheckOutRow?: number | null;
     }) => {
       const { data, error } = await api.user.config.put(body);
       if (error) throw new Error(String(error));

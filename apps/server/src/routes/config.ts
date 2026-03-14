@@ -16,6 +16,13 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         timezone: "Asia/Bangkok",
         defaultComment: null,
         hasGoogleCalendar: false,
+        sheetSpreadsheetId: null,
+        sheetName: null,
+        sheetStartColumn: null,
+        sheetCheckInRow: null,
+        sheetCheckOutRow: null,
+        hasSheetConfig: false,
+        updatedAt: null as string | null,
       };
     }
 
@@ -24,6 +31,19 @@ export const configRoutes = new Elysia({ prefix: "/user" })
       timezone: config.timezone,
       defaultComment: config.defaultComment,
       hasGoogleCalendar: !!config.googleRefreshToken,
+      sheetSpreadsheetId: config.sheetSpreadsheetId,
+      sheetName: config.sheetName,
+      sheetStartColumn: config.sheetStartColumn,
+      sheetCheckInRow: config.sheetCheckInRow,
+      sheetCheckOutRow: config.sheetCheckOutRow,
+      hasSheetConfig: !!(
+        config.sheetSpreadsheetId &&
+        config.sheetName &&
+        config.sheetStartColumn &&
+        config.sheetCheckInRow &&
+        config.sheetCheckOutRow
+      ),
+      updatedAt: config.updatedAt.toISOString(),
     };
   })
   .put(
@@ -36,12 +56,22 @@ export const configRoutes = new Elysia({ prefix: "/user" })
           workingHours: body.workingHours,
           timezone: body.timezone,
           defaultComment: body.defaultComment,
+          sheetSpreadsheetId: body.sheetSpreadsheetId,
+          sheetName: body.sheetName,
+          sheetStartColumn: body.sheetStartColumn,
+          sheetCheckInRow: body.sheetCheckInRow,
+          sheetCheckOutRow: body.sheetCheckOutRow,
         },
         create: {
           userId,
           workingHours: body.workingHours,
           timezone: body.timezone,
           defaultComment: body.defaultComment,
+          sheetSpreadsheetId: body.sheetSpreadsheetId,
+          sheetName: body.sheetName,
+          sheetStartColumn: body.sheetStartColumn,
+          sheetCheckInRow: body.sheetCheckInRow,
+          sheetCheckOutRow: body.sheetCheckOutRow,
         },
       });
 
@@ -50,6 +80,19 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         timezone: config.timezone,
         defaultComment: config.defaultComment,
         hasGoogleCalendar: !!config.googleRefreshToken,
+        sheetSpreadsheetId: config.sheetSpreadsheetId,
+        sheetName: config.sheetName,
+        sheetStartColumn: config.sheetStartColumn,
+        sheetCheckInRow: config.sheetCheckInRow,
+        sheetCheckOutRow: config.sheetCheckOutRow,
+        hasSheetConfig: !!(
+          config.sheetSpreadsheetId &&
+          config.sheetName &&
+          config.sheetStartColumn &&
+          config.sheetCheckInRow &&
+          config.sheetCheckOutRow
+        ),
+        updatedAt: config.updatedAt.toISOString(),
       };
     },
     {
@@ -57,6 +100,11 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         workingHours: t.Optional(t.Number({ minimum: 1, maximum: 24 })),
         timezone: t.Optional(t.String()),
         defaultComment: t.Optional(t.Nullable(t.String())),
+        sheetSpreadsheetId: t.Optional(t.Nullable(t.String())),
+        sheetName: t.Optional(t.Nullable(t.String())),
+        sheetStartColumn: t.Optional(t.Nullable(t.String())),
+        sheetCheckInRow: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
+        sheetCheckOutRow: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
       }),
     },
   );

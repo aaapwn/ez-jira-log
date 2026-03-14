@@ -12,6 +12,9 @@ export default defineConfig({
     tanstackRouter({}),
     react(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       manifest: {
         name: "ez-jira-log",
@@ -20,7 +23,10 @@ export default defineConfig({
         theme_color: "#0c0c0c",
       },
       pwaAssets: { disabled: false, config: true },
-      devOptions: { enabled: true },
+      devOptions: { enabled: true, type: "module" },
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+      },
     }),
   ],
   resolve: {

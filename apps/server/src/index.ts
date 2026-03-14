@@ -3,10 +3,13 @@ import { auth } from "@ez-jira-log/auth";
 import { env } from "@ez-jira-log/env/server";
 import { Elysia } from "elysia";
 
+import { registerCron } from "./plugins/cron";
 import { activitiesRoutes } from "./routes/activities";
 import { calendarRoutes } from "./routes/calendar";
+import { checkinRoutes } from "./routes/checkin";
 import { configRoutes } from "./routes/config";
 import { jiraRoutes } from "./routes/jira";
+import { notificationRoutes } from "./routes/notifications";
 import { templateSetsRoutes } from "./routes/template-sets";
 import { templatesRoutes } from "./routes/templates";
 
@@ -30,11 +33,16 @@ const app = new Elysia()
   .use(jiraRoutes)
   .use(calendarRoutes)
   .use(configRoutes)
+  .use(checkinRoutes)
+  .use(notificationRoutes)
   .use(templatesRoutes)
   .use(templateSetsRoutes)
-  .get("/", () => "OK")
-  .listen(3000, () => {
-    console.log("Server is running on http://localhost:3000");
-  });
+  .get("/", () => "OK");
+
+registerCron(app);
+
+app.listen(3000, () => {
+  console.log("Server is running on http://localhost:3000");
+});
 
 export type App = typeof app;
