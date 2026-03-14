@@ -19,6 +19,7 @@ import {
   LogIn,
   LogOut,
   Plus,
+  RefreshCw,
   Save,
   Sheet,
   Ticket,
@@ -377,32 +378,29 @@ function SettingsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {notifPermission === "granted" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs gap-1"
-                onClick={async () => {
-                  try {
-                    const reg = await navigator.serviceWorker.ready;
-                    await reg.showNotification("Test Notification", {
-                      body: "If you see this, notifications work!",
-                      icon: "/logo.png",
-                    });
-                    toast.success("Notification sent — check if it appeared");
-                  } catch (err) {
-                    toast.error(`showNotification failed: ${err instanceof Error ? err.message : String(err)}`);
-                  }
-                }}
-              >
-                Test
-              </Button>
-            )}
             {notifPermission === "granted" ? (
-              <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                Enabled
-              </Badge>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1"
+                  onClick={async () => {
+                    try {
+                      await subscribeToPush();
+                      toast.success("Re-subscribed to push notifications");
+                    } catch (err) {
+                      toast.error(`Re-subscribe failed: ${err instanceof Error ? err.message : String(err)}`);
+                    }
+                  }}
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Re-subscribe
+                </Button>
+                <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Enabled
+                </Badge>
+              </>
             ) : (
               <Button
                 variant="outline"
