@@ -44,15 +44,15 @@ import {
   useUpdateTemplate,
 } from "@/hooks/use-templates";
 import { useUpdateUserConfig, useUserConfig } from "@/hooks/use-user-config";
-import { authClient } from "@/lib/auth-client";
+import { prefetchSession } from "@/hooks/use-session";
 import { api } from "@/lib/eden";
 import { subscribeToPush } from "@/lib/push";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
   beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session.data) {
+    const session = await prefetchSession();
+    if (!session) {
       redirect({ to: "/login", throw: true });
     }
     return { session };

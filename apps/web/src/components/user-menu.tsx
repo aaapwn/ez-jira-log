@@ -11,11 +11,13 @@ import {
 import { Skeleton } from "@ez-jira-log/ui/components/skeleton";
 import { Link, useNavigate } from "@tanstack/react-router";
 
+import { useInvalidateSession, useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 
 export default function UserMenu() {
   const navigate = useNavigate();
-  const { data: session, isPending } = authClient.useSession();
+  const { data: session, isPending } = useSession();
+  const invalidateSession = useInvalidateSession();
 
   if (isPending) {
     return <Skeleton className="h-9 w-24" />;
@@ -45,9 +47,8 @@ export default function UserMenu() {
               authClient.signOut({
                 fetchOptions: {
                   onSuccess: () => {
-                    navigate({
-                      to: "/login",
-                    });
+                    invalidateSession();
+                    navigate({ to: "/login" });
                   },
                 },
               });

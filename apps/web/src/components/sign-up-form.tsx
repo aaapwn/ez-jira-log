@@ -6,6 +6,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
 
+import { useInvalidateSession, useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
@@ -14,7 +15,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   const navigate = useNavigate({
     from: "/",
   });
-  const { isPending } = authClient.useSession();
+  const { isPending } = useSession();
+  const invalidateSession = useInvalidateSession();
 
   const form = useForm({
     defaultValues: {
@@ -31,9 +33,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
-            navigate({
-              to: "/dashboard",
-            });
+            invalidateSession();
+            navigate({ to: "/dashboard" });
             toast.success("Sign up successful");
           },
           onError: (error) => {

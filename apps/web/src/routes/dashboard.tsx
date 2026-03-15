@@ -9,14 +9,14 @@ import { useState } from "react";
 
 import TimelineGrid from "@/components/timeline-grid";
 import { useActivitySummary } from "@/hooks/use-activity-summary";
-import { authClient } from "@/lib/auth-client";
+import { prefetchSession } from "@/hooks/use-session";
 import { getMonthToDateRange, hoursToTimeString } from "@/lib/date-utils";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
   beforeLoad: async () => {
-    const session = await authClient.getSession();
-    if (!session.data) {
+    const session = await prefetchSession();
+    if (!session) {
       redirect({ to: "/login", throw: true });
     }
     return { session };
