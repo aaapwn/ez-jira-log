@@ -18,6 +18,7 @@ import {
   Layers,
   LogIn,
   LogOut,
+  Palmtree,
   Plus,
   RefreshCw,
   Save,
@@ -91,6 +92,8 @@ function SettingsPage() {
   const [sheetStartColumn, setSheetStartColumn] = useState<string | null>(null);
   const [sheetCheckInRow, setSheetCheckInRow] = useState<number | null>(null);
   const [sheetCheckOutRow, setSheetCheckOutRow] = useState<number | null>(null);
+  const [sheetLeaveRow, setSheetLeaveRow] = useState<number | null>(null);
+  const [sheetWorkDays, setSheetWorkDays] = useState<string | null>(null);
 
   const displayHours = workingHours ?? config?.workingHours ?? 8;
   const displayTimezone = timezone ?? config?.timezone ?? "Asia/Bangkok";
@@ -101,6 +104,8 @@ function SettingsPage() {
   const displayStartColumn = sheetStartColumn ?? config?.sheetStartColumn ?? "";
   const displayCheckInRow = sheetCheckInRow ?? config?.sheetCheckInRow ?? "";
   const displayCheckOutRow = sheetCheckOutRow ?? config?.sheetCheckOutRow ?? "";
+  const displayLeaveRow = sheetLeaveRow ?? config?.sheetLeaveRow ?? "";
+  const displayWorkDays = sheetWorkDays ?? config?.sheetWorkDays ?? "1,2,3,4,5";
 
   useEffect(() => {
     if (typeof Notification !== "undefined") {
@@ -160,6 +165,8 @@ function SettingsPage() {
         sheetStartColumn: displayStartColumn || null,
         sheetCheckInRow: displayCheckInRow ? Number(displayCheckInRow) : null,
         sheetCheckOutRow: displayCheckOutRow ? Number(displayCheckOutRow) : null,
+        sheetLeaveRow: displayLeaveRow ? Number(displayLeaveRow) : null,
+        sheetWorkDays: displayWorkDays,
       });
       toast.success("Sheet config saved");
     } catch {
@@ -169,8 +176,8 @@ function SettingsPage() {
 
   const [runningAction, setRunningAction] = useState<string | null>(null);
 
-  const handleRunAction = async (action: "test-checkin" | "test-checkout") => {
-    const label = action === "test-checkin" ? "Check-in" : "Check-out";
+  const handleRunAction = async (action: "test-checkin" | "test-checkout" | "test-leave") => {
+    const label = action === "test-checkin" ? "Check-in" : action === "test-checkout" ? "Check-out" : "Leave";
     setRunningAction(action);
     try {
       const { data, error } = await api.checkin[action].post();
@@ -488,7 +495,7 @@ function SettingsPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="checkin-row" className="text-xs text-muted-foreground">
                   Check-in Row
@@ -517,32 +524,105 @@ function SettingsPage() {
                   className="bg-background/50 tabular-nums"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="leave-row" className="text-xs text-muted-foreground">
+                  Leave Row
+                </Label>
+                <Input
+                  id="leave-row"
+                  type="number"
+                  value={displayLeaveRow}
+                  onChange={(e) => setSheetLeaveRow(parseInt(e.target.value) || null)}
+                  placeholder="e.g., 55"
+                  min={1}
+                  className="bg-background/50 tabular-nums"
+                />
+              </div>
             </div>
-            {todayColumn && (
-              <div className="flex items-center gap-2 rounded-lg border border-ocean-300/20 bg-ocean-300/5 px-3 py-2">
-                <Sheet className="h-3.5 w-3.5 text-ocean-300" />
-                <span className="text-xs text-muted-foreground">
-                  Today (day {new Date().getDate()}) column:{" "}
-                  <span className="font-mono font-semibold text-ocean-300">{todayColumn}</span>
-                  {displayCheckInRow && (
-                    <>
-                      {" — Check-in: "}
-                      <span className="font-mono font-semibold text-ocean-300">
-                        {todayColumn}{displayCheckInRow}
-                      </span>
-                    </>
-                  )}
-                  {displayCheckOutRow && (
-                    <>
-                      {" — Check-out: "}
-                      <span className="font-mono font-semibold text-ocean-300">
-                        {todayColumn}{displayCheckOutRow}
-                      </span>
-                    </>
-                  )}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">
+                Work Days
+              </Label>
+              <div className="flex items-center gap-1.5">
+                {([
+                  { day: 1, label: "Mon" },
+                  { day: 2, label: "Tue" },
+                  { day: 3, label: "Wed" },
+                  { day: 4, label: "Thu" },
+                  { day: 5, label: "Fri" },
+                ] as const).map(({ day, label }) => {
+                  const days = displayWorkDays.split(",").map(Number);
+                  const active = days.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        const next = active
+                          ? days.filter((d) => d !== day)
+                          : [...days, day].sort();
+                        setSheetWorkDays(next.join(","));
+                      }}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                        active
+                          ? "border-ocean-300/50 bg-ocean-300/15 text-ocean-300"
+                          : "border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted/40"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+                <span className="ml-2 text-[10px] text-muted-foreground">
+                  Off days → tick leave row
                 </span>
               </div>
-            )}
+            </div>
+            {todayColumn && (() => {
+              const todayDow = new Date().getDay();
+              const isWorkDay = displayWorkDays.split(",").map(Number).includes(todayDow);
+              return (
+                <div className="flex items-center gap-2 rounded-lg border border-ocean-300/20 bg-ocean-300/5 px-3 py-2">
+                  <Sheet className="h-3.5 w-3.5 text-ocean-300" />
+                  <span className="text-xs text-muted-foreground">
+                    Today (day {new Date().getDate()}) column:{" "}
+                    <span className="font-mono font-semibold text-ocean-300">{todayColumn}</span>
+                    {isWorkDay ? (
+                      <>
+                        {displayCheckInRow && (
+                          <>
+                            {" — Check-in: "}
+                            <span className="font-mono font-semibold text-ocean-300">
+                              {todayColumn}{displayCheckInRow}
+                            </span>
+                          </>
+                        )}
+                        {displayCheckOutRow && (
+                          <>
+                            {" — Check-out: "}
+                            <span className="font-mono font-semibold text-ocean-300">
+                              {todayColumn}{displayCheckOutRow}
+                            </span>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <span className="ml-1 text-amber-400 font-medium">OFF DAY</span>
+                        {displayLeaveRow && (
+                          <>
+                            {" — Leave: "}
+                            <span className="font-mono font-semibold text-ocean-300">
+                              {todayColumn}{displayLeaveRow}
+                            </span>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </span>
+                </div>
+              );
+            })()}
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 onClick={handleSaveSheetConfig}
@@ -571,6 +651,16 @@ function SettingsPage() {
               >
                 <LogOut className="h-3 w-3" />
                 {runningAction === "test-checkout" ? "Running..." : "Check-out Now"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5"
+                onClick={() => handleRunAction("test-leave")}
+                disabled={!!runningAction || !config?.hasSheetConfig || !displayLeaveRow}
+              >
+                <Palmtree className="h-3 w-3" />
+                {runningAction === "test-leave" ? "Running..." : "Leave Now"}
               </Button>
             </div>
           </>

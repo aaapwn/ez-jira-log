@@ -21,6 +21,8 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         sheetStartColumn: null,
         sheetCheckInRow: null,
         sheetCheckOutRow: null,
+        sheetLeaveRow: null,
+        sheetWorkDays: "1,2,3,4,5",
         hasSheetConfig: false,
         updatedAt: null as string | null,
       };
@@ -36,6 +38,8 @@ export const configRoutes = new Elysia({ prefix: "/user" })
       sheetStartColumn: config.sheetStartColumn,
       sheetCheckInRow: config.sheetCheckInRow,
       sheetCheckOutRow: config.sheetCheckOutRow,
+      sheetLeaveRow: config.sheetLeaveRow,
+      sheetWorkDays: config.sheetWorkDays,
       hasSheetConfig: !!(
         config.sheetSpreadsheetId &&
         config.sheetName &&
@@ -50,28 +54,30 @@ export const configRoutes = new Elysia({ prefix: "/user" })
     "/config",
     async ({ body, request }) => {
       const userId = await getAuthUserId(request);
+      const sheetData = {
+        sheetSpreadsheetId: body.sheetSpreadsheetId,
+        sheetName: body.sheetName,
+        sheetStartColumn: body.sheetStartColumn,
+        sheetCheckInRow: body.sheetCheckInRow,
+        sheetCheckOutRow: body.sheetCheckOutRow,
+        sheetLeaveRow: body.sheetLeaveRow,
+        sheetWorkDays: body.sheetWorkDays,
+      };
+
       const config = await prisma.userConfig.upsert({
         where: { userId },
         update: {
           workingHours: body.workingHours,
           timezone: body.timezone,
           defaultComment: body.defaultComment,
-          sheetSpreadsheetId: body.sheetSpreadsheetId,
-          sheetName: body.sheetName,
-          sheetStartColumn: body.sheetStartColumn,
-          sheetCheckInRow: body.sheetCheckInRow,
-          sheetCheckOutRow: body.sheetCheckOutRow,
+          ...sheetData,
         },
         create: {
           userId,
           workingHours: body.workingHours,
           timezone: body.timezone,
           defaultComment: body.defaultComment,
-          sheetSpreadsheetId: body.sheetSpreadsheetId,
-          sheetName: body.sheetName,
-          sheetStartColumn: body.sheetStartColumn,
-          sheetCheckInRow: body.sheetCheckInRow,
-          sheetCheckOutRow: body.sheetCheckOutRow,
+          ...sheetData,
         },
       });
 
@@ -85,6 +91,8 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         sheetStartColumn: config.sheetStartColumn,
         sheetCheckInRow: config.sheetCheckInRow,
         sheetCheckOutRow: config.sheetCheckOutRow,
+        sheetLeaveRow: config.sheetLeaveRow,
+        sheetWorkDays: config.sheetWorkDays,
         hasSheetConfig: !!(
           config.sheetSpreadsheetId &&
           config.sheetName &&
@@ -105,6 +113,8 @@ export const configRoutes = new Elysia({ prefix: "/user" })
         sheetStartColumn: t.Optional(t.Nullable(t.String())),
         sheetCheckInRow: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
         sheetCheckOutRow: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
+        sheetLeaveRow: t.Optional(t.Nullable(t.Number({ minimum: 1 }))),
+        sheetWorkDays: t.Optional(t.String()),
       }),
     },
   );

@@ -10,6 +10,10 @@ function getTodayInTimezone(tz: string): Date {
   return localeDate;
 }
 
+function parseWorkDays(raw: string): number[] {
+  return raw.split(",").map(Number).filter((n) => !Number.isNaN(n));
+}
+
 export interface CheckActionResult {
   processed: number;
   skipped: number;
@@ -18,7 +22,9 @@ export interface CheckActionResult {
   notification?: NotificationResult;
 }
 
-async function processCheckAction(type: "checkin" | "checkout", userId?: string): Promise<CheckActionResult> {
+type CheckAction = "checkin" | "checkout" | "leave";
+
+async function processCheckAction(type: CheckAction, userId?: string): Promise<CheckActionResult> {
   const result: CheckActionResult = { processed: 0, skipped: 0, errors: [], details: [] };
 
   const where = userId
@@ -63,17 +69,66 @@ async function processCheckAction(type: "checkin" | "checkout", userId?: string)
       continue;
     }
 
+    const today = getTodayInTimezone(config.timezone);
+    const dayOfWeek = today.getDay();
+    const workDays = parseWorkDays(config.sheetWorkDays);
+    const isWorkDay = workDays.includes(dayOfWeek);
+
+    let effectiveType = type;
+    if (type === "checkin" && !isWorkDay) {
+      if (!config.sheetLeaveRow) {
+        result.skipped++;
+        result.details.push(`${config.userId}: off day but no leave row configured — skipped`);
+        continue;
+      }
+      effectiveType = "leave";
+    }
+
+    if (type === "checkout" && !isWorkDay) {
+      result.skipped++;
+      result.details.push(`${config.userId}: off day — no check-out needed`);
+      continue;
+    }
+
+    if (effectiveType === "leave" && !config.sheetLeaveRow) {
+      result.skipped++;
+      result.details.push(`${config.userId}: no leave row configured — skipped`);
+      continue;
+    }
+
     try {
       const accessToken = await refreshAccessToken(config.googleRefreshToken);
-      const today = getTodayInTimezone(config.timezone);
       const dayOfMonth = today.getDate();
       const column = getColumnForDay(config.sheetStartColumn, dayOfMonth);
-      const row = type === "checkin" ? config.sheetCheckInRow : config.sheetCheckOutRow;
+
+      let row: number;
+      let icon: string;
+      let label: string;
+      let notifIcon: string;
+
+      switch (effectiveType) {
+        case "checkin":
+          row = config.sheetCheckInRow;
+          icon = "☀️";
+          label = "Checked in";
+          notifIcon = "/icons/checkin.svg";
+          break;
+        case "checkout":
+          row = config.sheetCheckOutRow;
+          icon = "🌙";
+          label = "Checked out";
+          notifIcon = "/icons/checkout.svg";
+          break;
+        case "leave":
+          row = config.sheetLeaveRow!;
+          icon = "🏖️";
+          label = "Leave marked";
+          notifIcon = "/icons/reminder.svg";
+          break;
+      }
 
       await tickCheckbox(accessToken, config.sheetSpreadsheetId, config.sheetName, column, row);
 
-      const icon = type === "checkin" ? "☀️" : "🌙";
-      const label = type === "checkin" ? "Checked in" : "Checked out";
       const timeStr = new Date().toLocaleTimeString("th-TH", {
         hour: "2-digit",
         minute: "2-digit",
@@ -83,23 +138,23 @@ async function processCheckAction(type: "checkin" | "checkout", userId?: string)
       const notifResult = await sendNotification(config.userId, {
         title: `${icon} ${label}`,
         body: `${label} at ${timeStr} (column ${column}, row ${row})`,
-        icon: type === "checkin" ? "/icons/checkin.svg" : "/icons/checkout.svg",
+        icon: notifIcon,
       });
       result.notification = notifResult;
 
       result.processed++;
-      result.details.push(`${config.userId}: ${column}${row} ✓`);
+      result.details.push(`${config.userId}: ${column}${row} ✓ (${effectiveType})`);
       if (notifResult.subscriptions === 0) {
         result.details.push("No push subscriptions — enable notifications in Settings");
       }
-      console.log(`[${type}] ${config.userId}: ${column}${row} ✓`);
+      console.log(`[${effectiveType}] ${config.userId}: ${column}${row} ✓`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       result.errors.push(`${config.userId}: ${msg}`);
-      console.error(`[${type}] Failed for user ${config.userId}:`, err);
+      console.error(`[${effectiveType}] Failed for user ${config.userId}:`, err);
       try {
         await sendNotification(config.userId, {
-          title: `❌ ${type === "checkin" ? "Check-in" : "Check-out"} failed`,
+          title: `❌ ${effectiveType === "checkin" ? "Check-in" : effectiveType === "checkout" ? "Check-out" : "Leave"} failed`,
           body: `Could not update Google Sheet. ${msg}`,
           icon: "/icons/error.svg",
         });
@@ -116,6 +171,10 @@ export async function runCheckIn(userId?: string): Promise<CheckActionResult> {
 
 export async function runCheckOut(userId?: string): Promise<CheckActionResult> {
   return processCheckAction("checkout", userId);
+}
+
+export async function runLeave(userId?: string): Promise<CheckActionResult> {
+  return processCheckAction("leave", userId);
 }
 
 export async function runMonthlyReminder(userId?: string): Promise<CheckActionResult> {

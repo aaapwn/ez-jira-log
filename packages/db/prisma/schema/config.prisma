@@ -13,6 +13,8 @@ model UserConfig {
   sheetStartColumn   String?
   sheetCheckInRow    Int?
   sheetCheckOutRow   Int?
+  sheetLeaveRow      Int?
+  sheetWorkDays      String   @default("1,2,3,4,5")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

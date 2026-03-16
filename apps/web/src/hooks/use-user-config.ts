@@ -31,6 +31,8 @@ export function useUpdateUserConfig() {
       sheetStartColumn?: string | null;
       sheetCheckInRow?: number | null;
       sheetCheckOutRow?: number | null;
+      sheetLeaveRow?: number | null;
+      sheetWorkDays?: string;
     }) => {
       const { data, error } = await api.user.config.put(body);
       if (error) throw new Error(String(error));
