@@ -44,9 +44,9 @@ export async function sendNotification(
         failed++;
         const detail = `${endpointShort} → ${err.statusCode || "unknown"}: ${err.body || err.message}`;
         errors.push(detail);
-        if (err.statusCode === 410) {
+        if (err.statusCode === 410 || err.statusCode === 404 || err.statusCode === 403) {
           await prisma.pushSubscription.delete({ where: { id: sub.id } });
-          console.warn(`[notification] Removed expired (410 Gone) subscription ${sub.id} for user ${userId}`);
+          console.warn(`[notification] Removed stale (${err.statusCode}) subscription ${sub.id} for user ${userId}`);
         } else {
           console.warn(`[notification] Failed: ${detail}`);
         }
