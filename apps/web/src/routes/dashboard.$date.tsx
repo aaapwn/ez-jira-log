@@ -610,10 +610,10 @@ function DayDetailPage() {
                       {/* Desktop */}
                       <div className="hidden md:grid grid-cols-[auto_110px_6px_110px_40px_100px_1fr_1fr_auto_36px] items-center gap-1.5">
                         <CheckCircle2 className="h-4 w-4 shrink-0 text-ocean-300" />
-                        <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.startTime}</span>
-                        <span className="text-center text-ocean-200/40">–</span>
-                        <span className="text-xs tabular-nums text-ocean-200/70 text-center">{tr.endTime}</span>
-                        <span className="text-[10px] font-mono tabular-nums text-ocean-300/70 text-center">
+                        <span className="text-xs tabular-nums text-foreground/60 text-center">{tr.startTime}</span>
+                        <span className="text-center text-foreground/30">–</span>
+                        <span className="text-xs tabular-nums text-foreground/60 text-center">{tr.endTime}</span>
+                        <span className="text-[10px] font-mono tabular-nums text-foreground/50 text-center">
                           {wl.hours.toFixed(wl.hours % 1 === 0 ? 0 : 1)}h
                         </span>
                         <Badge
@@ -641,10 +641,10 @@ function DayDetailPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-ocean-300" />
-                            <span className="text-xs tabular-nums text-ocean-200/70">{tr.startTime}</span>
-                            <span className="text-ocean-200/40">–</span>
-                            <span className="text-xs tabular-nums text-ocean-200/70">{tr.endTime}</span>
-                            <span className="text-[10px] font-mono tabular-nums text-ocean-300/70">
+                            <span className="text-xs tabular-nums text-foreground/60">{tr.startTime}</span>
+                            <span className="text-foreground/30">–</span>
+                            <span className="text-xs tabular-nums text-foreground/60">{tr.endTime}</span>
+                            <span className="text-[10px] font-mono tabular-nums text-foreground/50">
                               {wl.hours.toFixed(wl.hours % 1 === 0 ? 0 : 1)}h
                             </span>
                           </div>

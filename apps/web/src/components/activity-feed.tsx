@@ -27,9 +27,9 @@ interface Activity {
 }
 
 const sourceConfig = {
-  gitlab: { icon: GitBranch, label: "GitLab", color: "text-orange-400" },
-  jira: { icon: Ticket, label: "Jira", color: "text-ocean-300" },
-  calendar: { icon: Calendar, label: "Calendar", color: "text-ocean-200" },
+  gitlab: { icon: GitBranch, label: "GitLab", color: "text-orange-400", line: "border-orange-400/30" },
+  jira: { icon: Ticket, label: "Jira", color: "text-ocean-300", line: "border-ocean-300/30" },
+  calendar: { icon: Calendar, label: "Calendar", color: "text-ocean-200", line: "border-ocean-200/30" },
 } as const;
 
 const typeIcons = {
@@ -94,7 +94,7 @@ export default function ActivityFeed({
                   {items.length}
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className={`ml-1.5 border-l-2 ${config.line} pl-3 space-y-1`}>
                 {items.map((activity) => {
                   const TypeIcon = typeIcons[activity.type];
                   const isCalendar = activity.source === "calendar";

@@ -11,6 +11,7 @@ import {
   BellOff,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Edit2,
   ExternalLink,
@@ -18,6 +19,7 @@ import {
   Layers,
   LogIn,
   LogOut,
+  MoreHorizontal,
   Palmtree,
   Plus,
   RefreshCw,
@@ -175,6 +177,7 @@ function SettingsPage() {
   };
 
   const [runningAction, setRunningAction] = useState<string | null>(null);
+  const [showActions, setShowActions] = useState(false);
 
   const handleRunAction = async (action: "test-checkin" | "test-checkout" | "test-leave") => {
     const label = action === "test-checkin" ? "Check-in" : action === "test-checkout" ? "Check-out" : "Leave";
@@ -337,7 +340,7 @@ function SettingsPage() {
               </div>
             </div>
             {config?.hasGoogleCalendar ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center flex-col md:flex-row gap-2">
                 <Badge className="bg-status-complete/15 text-status-complete border-status-complete/25 hover:bg-status-complete/15 gap-1">
                   <CheckCircle2 className="h-3 w-3" />
                   Connected
@@ -390,7 +393,7 @@ function SettingsPage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-col md:flex-row gap-2">
             {notifPermission === "granted" ? (
               <>
                 <Button
@@ -430,7 +433,7 @@ function SettingsPage() {
         </div>
       </Card>
 
-      <Card className={`border-border/50 bg-card/70 backdrop-blur-sm p-6 space-y-5 ${needsNewMonthConfig ? "ring-2 ring-destructive/50" : ""}`}>
+      <Card className={`border-border/50 bg-card/70 backdrop-blur-sm p-6 space-y-5 overflow-visible ${needsNewMonthConfig ? "ring-2 ring-destructive/50" : ""}`}>
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
             Google Sheets Check-in
@@ -543,7 +546,7 @@ function SettingsPage() {
               <Label className="text-xs text-muted-foreground">
                 Work Days
               </Label>
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {([
                   { day: 1, label: "Mon" },
                   { day: 2, label: "Tue" },
@@ -573,10 +576,10 @@ function SettingsPage() {
                     </button>
                   );
                 })}
-                <span className="ml-2 text-[10px] text-muted-foreground">
-                  Off days → tick leave row
-                </span>
               </div>
+              <p className="text-[10px] text-muted-foreground mt-1.5">
+                Off days → tick leave row
+              </p>
             </div>
             {todayColumn && (() => {
               const todayDow = new Date().getDay();
@@ -632,36 +635,47 @@ function SettingsPage() {
                 <Save className="h-3.5 w-3.5" />
                 {updateConfig.isPending ? "Saving..." : "Save Sheet Config"}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1.5"
-                onClick={() => handleRunAction("test-checkin")}
-                disabled={!!runningAction || !config?.hasSheetConfig}
-              >
-                <LogIn className="h-3 w-3" />
-                {runningAction === "test-checkin" ? "Running..." : "Check-in Now"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1.5"
-                onClick={() => handleRunAction("test-checkout")}
-                disabled={!!runningAction || !config?.hasSheetConfig}
-              >
-                <LogOut className="h-3 w-3" />
-                {runningAction === "test-checkout" ? "Running..." : "Check-out Now"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1.5"
-                onClick={() => handleRunAction("test-leave")}
-                disabled={!!runningAction || !config?.hasSheetConfig || !displayLeaveRow}
-              >
-                <Palmtree className="h-3 w-3" />
-                {runningAction === "test-leave" ? "Running..." : "Leave Now"}
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5"
+                  onClick={() => setShowActions(!showActions)}
+                  disabled={!config?.hasSheetConfig}
+                >
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  Actions
+                  <ChevronDown className={`h-3 w-3 transition-transform ${showActions ? "rotate-180" : ""}`} />
+                </Button>
+                {showActions && (
+                  <div className="absolute left-0 bottom-full mb-1 w-44 rounded-lg border border-border/60 bg-popover p-1 shadow-xl z-50">
+                    <button
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => { handleRunAction("test-checkin"); setShowActions(false); }}
+                      disabled={!!runningAction}
+                    >
+                      <LogIn className="h-3.5 w-3.5 text-ocean-300" />
+                      {runningAction === "test-checkin" ? "Running..." : "Check-in Now"}
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => { handleRunAction("test-checkout"); setShowActions(false); }}
+                      disabled={!!runningAction}
+                    >
+                      <LogOut className="h-3.5 w-3.5 text-ocean-300" />
+                      {runningAction === "test-checkout" ? "Running..." : "Check-out Now"}
+                    </button>
+                    <button
+                      className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-muted disabled:opacity-50 disabled:pointer-events-none"
+                      onClick={() => { handleRunAction("test-leave"); setShowActions(false); }}
+                      disabled={!!runningAction || !displayLeaveRow}
+                    >
+                      <Palmtree className="h-3.5 w-3.5 text-amber-400" />
+                      {runningAction === "test-leave" ? "Running..." : "Leave Now"}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </>
         )}
@@ -786,12 +800,6 @@ function SettingsPage() {
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Layers className="h-4 w-4 text-ocean-300 shrink-0" />
                     <div className="text-sm font-medium">{s.name}</div>
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] shrink-0 tabular-nums"
-                    >
-                      {s.items.length} entries
-                    </Badge>
                     <span className="text-[10px] text-muted-foreground tabular-nums">
                       {s.items
                         .reduce((sum: number, it: TemplateSetItem) => sum + it.hours, 0)

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import DayCard from "./day-card";
 
 interface DayData {
@@ -11,25 +9,9 @@ interface DayData {
 
 interface TimelineGridProps {
   days: DayData[];
-  selectedDates: Set<string>;
-  onSelectionChange: (dates: Set<string>) => void;
 }
 
-export default function TimelineGrid({
-  days,
-  selectedDates,
-  onSelectionChange,
-}: TimelineGridProps) {
-  const handleSelectChange = (date: string, checked: boolean) => {
-    const next = new Set(selectedDates);
-    if (checked) {
-      next.add(date);
-    } else {
-      next.delete(date);
-    }
-    onSelectionChange(next);
-  };
-
+export default function TimelineGrid({ days }: TimelineGridProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {days.map((day) => {
@@ -50,8 +32,6 @@ export default function TimelineGrid({
             activityCount={commitCount + calendarCount}
             commitCount={commitCount}
             calendarCount={calendarCount}
-            selected={selectedDates.has(day.date)}
-            onSelectChange={(checked) => handleSelectChange(day.date, checked)}
           />
         );
       })}

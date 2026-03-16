@@ -1,10 +1,9 @@
-import { Badge } from "@ez-jira-log/ui/components/badge";
 import { Button } from "@ez-jira-log/ui/components/button";
 import { Card } from "@ez-jira-log/ui/components/card";
 import { Input } from "@ez-jira-log/ui/components/input";
 import { Skeleton } from "@ez-jira-log/ui/components/skeleton";
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
-import { CheckSquare, Clock, AlertTriangle, CheckCircle2, RefreshCw, Send, MousePointer } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 import TimelineGrid from "@/components/timeline-grid";
@@ -27,7 +26,6 @@ function DashboardPage() {
   const { from, to } = getMonthToDateRange();
   const [dateFrom, setDateFrom] = useState(from);
   const [dateTo, setDateTo] = useState(to);
-  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
 
   const { data: allDays, isLoading, refetch, isFetching } = useActivitySummary(dateFrom, dateTo);
 
@@ -77,7 +75,7 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-3">
         <StatCard
           icon={<Clock className="h-4 w-4 text-ocean-300" />}
           label="Total Logged"
@@ -95,52 +93,7 @@ function DashboardPage() {
           value={String(completeDays)}
           valueClass="text-status-complete"
         />
-        <StatCard
-          icon={<MousePointer className="h-4 w-4 text-ocean-200" />}
-          label="Selected"
-          value={String(selectedDates.size)}
-        />
       </div>
-
-      {selectedDates.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-ocean-300/20 bg-ocean-300/5 p-3 backdrop-blur-sm">
-          <Badge variant="secondary" className="bg-ocean-300/15 text-ocean-300 border-ocean-300/25">
-            {selectedDates.size} selected
-          </Badge>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs"
-            onClick={() => {
-              if (!days) return;
-              const incomplete = days
-                .filter((d) => d.status === "incomplete")
-                .map((d) => d.date);
-              setSelectedDates(new Set(incomplete));
-            }}
-          >
-            <CheckSquare className="h-3.5 w-3.5 mr-1" />
-            Select All Incomplete
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs"
-            onClick={() => setSelectedDates(new Set())}
-          >
-            Clear
-          </Button>
-          <div className="flex-1" />
-          <Button
-            size="sm"
-            className="gap-1.5 bg-gradient-to-r from-ocean-400 to-ocean-300 text-white hover:from-ocean-400/90 hover:to-ocean-300/90 shadow-sm"
-            disabled
-          >
-            <Send className="h-3.5 w-3.5" />
-            Sync to Jira
-          </Button>
-        </div>
-      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -149,11 +102,7 @@ function DashboardPage() {
           ))}
         </div>
       ) : days ? (
-        <TimelineGrid
-          days={days}
-          selectedDates={selectedDates}
-          onSelectionChange={setSelectedDates}
-        />
+        <TimelineGrid days={days} />
       ) : (
         <Card className="flex flex-col items-center justify-center gap-2 p-12 text-center">
           <AlertTriangle className="h-8 w-8 text-muted-foreground" />

@@ -1,8 +1,9 @@
 import { Badge } from "@ez-jira-log/ui/components/badge";
 import { Card } from "@ez-jira-log/ui/components/card";
-import { Checkbox } from "@ez-jira-log/ui/components/checkbox";
-import { Link } from "@tanstack/react-router";
+import { cn } from "@ez-jira-log/ui/lib/utils";
+import { Link, useLocation } from "@tanstack/react-router";
 import { Calendar, GitBranch } from "lucide-react";
+import { memo } from "react";
 
 import { getDayName, getMonthDay, hoursToTimeString, isToday } from "@/lib/date-utils";
 
@@ -14,8 +15,6 @@ interface DayCardProps {
   activityCount: number;
   commitCount: number;
   calendarCount: number;
-  selected: boolean;
-  onSelectChange: (checked: boolean) => void;
 }
 
 const statusBorder = {
@@ -24,7 +23,7 @@ const statusBorder = {
   off: "border-border/40 opacity-60",
 } as const;
 
-export default function DayCard({
+const DayCard = memo(function DayCard({
   date,
   hoursLogged,
   target,
@@ -32,39 +31,36 @@ export default function DayCard({
   activityCount,
   commitCount,
   calendarCount,
-  selected,
-  onSelectChange,
 }: DayCardProps) {
   const progress = Math.min((hoursLogged / target) * 100, 100);
   const today = isToday(date);
+  const { pathname } = useLocation();
+  const isActive = pathname === `/dashboard/${date}`;
 
   return (
     <Card
-      className={`group relative overflow-hidden border bg-card/60 backdrop-blur-sm p-3.5 transition-all hover:shadow-lg hover:shadow-ocean-300/5 ${statusBorder[status]} ${today ? "ring-2 ring-ocean-300/50" : ""} ${selected ? "ring-2 ring-ocean-300" : ""}`}
+      className={cn(
+        "group relative overflow-hidden border backdrop-blur-sm p-3.5 transition-colors hover:shadow-lg hover:shadow-ocean-300/5",
+        statusBorder[status],
+        today && "ring-2 ring-ocean-300/50",
+        isActive ? "border-ocean-400/50 bg-ocean-300/5" : "bg-card/60",
+      )}
     >
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <Checkbox
-            checked={selected}
-            onCheckedChange={(checked) => onSelectChange(!!checked)}
-            aria-label={`Select ${date}`}
-            className="relative z-20"
-          />
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-sm tracking-tight">
-                {getDayName(date)}
-              </span>
-              {today && (
-                <Badge className="text-[10px] px-1.5 py-0 bg-ocean-300/15 text-ocean-300 border-ocean-300/25 hover:bg-ocean-300/15">
-                  Today
-                </Badge>
-              )}
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {getMonthDay(date)}
+        <div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-sm tracking-tight">
+              {getDayName(date)}
             </span>
+            {today && (
+              <Badge className="text-[10px] px-1.5 py-0 bg-ocean-300/15 text-ocean-300 border-ocean-300/25 hover:bg-ocean-300/15">
+                Today
+              </Badge>
+            )}
           </div>
+          <span className="text-xs text-muted-foreground">
+            {getMonthDay(date)}
+          </span>
         </div>
         <span className="text-xs font-mono tabular-nums text-muted-foreground">
           {hoursToTimeString(hoursLogged)}/{target}h
@@ -110,4 +106,6 @@ export default function DayCard({
       />
     </Card>
   );
-}
+});
+
+export default DayCard;
