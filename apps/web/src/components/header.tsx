@@ -8,7 +8,7 @@ import {
 } from "@ez-jira-log/ui/components/dialog";
 import { Separator } from "@ez-jira-log/ui/components/separator";
 import { Link, useMatches } from "@tanstack/react-router";
-import { LayoutDashboard, Menu, Settings, X, Zap } from "lucide-react";
+import { LayoutDashboard, Menu, Settings, Sheet, X, Zap } from "lucide-react";
 import { useState } from "react";
 
 import { ModeToggle } from "./mode-toggle";
@@ -16,6 +16,7 @@ import UserMenu from "./user-menu";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/checkin", label: "Check-in", icon: Sheet },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

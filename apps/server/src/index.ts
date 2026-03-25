@@ -8,6 +8,7 @@ import { activitiesRoutes } from "./routes/activities";
 import { calendarRoutes } from "./routes/calendar";
 import { checkinRoutes } from "./routes/checkin";
 import { configRoutes } from "./routes/config";
+import { holidayRoutes } from "./routes/holidays";
 import { jiraRoutes } from "./routes/jira";
 import { notificationRoutes } from "./routes/notifications";
 import { templateSetsRoutes } from "./routes/template-sets";
@@ -34,6 +35,7 @@ const app = new Elysia()
   .use(calendarRoutes)
   .use(configRoutes)
   .use(checkinRoutes)
+  .use(holidayRoutes)
   .use(notificationRoutes)
   .use(templatesRoutes)
   .use(templateSetsRoutes)

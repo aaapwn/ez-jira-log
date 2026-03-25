@@ -12,6 +12,7 @@ model User {
   templates          WorklogTemplate[]
   templateSets       TemplateSet[]
   pushSubscriptions  PushSubscription[]
+  holidays           Holiday[]
 
   @@unique([email])
   @@map("user")

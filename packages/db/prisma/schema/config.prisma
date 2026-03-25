@@ -22,3 +22,17 @@ model UserConfig {
   @@index([userId])
   @@map("user_config")
 }
+
+model Holiday {
+  id     String  @id @default(cuid())
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date   String
+  reason String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("holiday")
+}

@@ -72,10 +72,15 @@ async function processCheckAction(type: CheckAction, userId?: string): Promise<C
     const today = getTodayInTimezone(config.timezone);
     const dayOfWeek = today.getDay();
     const workDays = parseWorkDays(config.sheetWorkDays);
-    const isWorkDay = workDays.includes(dayOfWeek);
+
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    const holiday = await prisma.holiday.findUnique({
+      where: { userId_date: { userId: config.userId, date: todayStr } },
+    });
+    const isOffDay = !workDays.includes(dayOfWeek) || !!holiday;
 
     let effectiveType = type;
-    if (type === "checkin" && !isWorkDay) {
+    if (type === "checkin" && isOffDay) {
       if (!config.sheetLeaveRow) {
         result.skipped++;
         result.details.push(`${config.userId}: off day but no leave row configured — skipped`);
@@ -84,9 +89,9 @@ async function processCheckAction(type: CheckAction, userId?: string): Promise<C
       effectiveType = "leave";
     }
 
-    if (type === "checkout" && !isWorkDay) {
+    if (type === "checkout" && isOffDay) {
       result.skipped++;
-      result.details.push(`${config.userId}: off day — no check-out needed`);
+      result.details.push(`${config.userId}: off day — no check-out needed${holiday ? ` (${holiday.reason || "holiday"})` : ""}`);
       continue;
     }
 
