@@ -1,4 +1,4 @@
-import { env } from "@ez-jira-log/env/server";
+import { env } from "@ez-jira-log/env/cron";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../prisma/generated/client";

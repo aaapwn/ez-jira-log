@@ -1,4 +1,4 @@
-import { env } from "@ez-jira-log/env/server";
+import { env } from "@ez-jira-log/env/cron";
 
 import type { Activity, CalendarEvent } from "../types";
 import { cache } from "./cache";
@@ -12,6 +12,24 @@ const SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
 ];
 
+function getGoogleOAuthEnv(options: { requireRedirectUri?: boolean } = {}) {
+  const missing: string[] = [];
+
+  if (!env.GOOGLE_CLIENT_ID) missing.push("GOOGLE_CLIENT_ID");
+  if (!env.GOOGLE_CLIENT_SECRET) missing.push("GOOGLE_CLIENT_SECRET");
+  if (options.requireRedirectUri && !env.GOOGLE_REDIRECT_URI) missing.push("GOOGLE_REDIRECT_URI");
+
+  if (missing.length > 0) {
+    throw new Error(`Missing Google OAuth environment variables: ${missing.join(", ")}`);
+  }
+
+  return {
+    clientId: env.GOOGLE_CLIENT_ID!,
+    clientSecret: env.GOOGLE_CLIENT_SECRET!,
+    redirectUri: env.GOOGLE_REDIRECT_URI!,
+  };
+}
+
 const MEETING_PATTERNS = [
   { pattern: /stand[-\s]?up/i, type: "standup" },
   { pattern: /retro(spective)?/i, type: "retro" },
@@ -23,9 +41,10 @@ const MEETING_PATTERNS = [
 ] as const;
 
 export function getAuthUrl(): string {
+  const googleEnv = getGoogleOAuthEnv({ requireRedirectUri: true });
   const params = new URLSearchParams({
-    client_id: env.GOOGLE_CLIENT_ID,
-    redirect_uri: env.GOOGLE_REDIRECT_URI,
+    client_id: googleEnv.clientId,
+    redirect_uri: googleEnv.redirectUri,
     response_type: "code",
     scope: SCOPES.join(" "),
     access_type: "offline",
@@ -39,14 +58,15 @@ export async function exchangeCodeForTokens(code: string): Promise<{
   refresh_token: string;
   expires_in: number;
 }> {
+  const googleEnv = getGoogleOAuthEnv({ requireRedirectUri: true });
   const res = await fetch(GOOGLE_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       code,
-      client_id: env.GOOGLE_CLIENT_ID,
-      client_secret: env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: env.GOOGLE_REDIRECT_URI,
+      client_id: googleEnv.clientId,
+      client_secret: googleEnv.clientSecret,
+      redirect_uri: googleEnv.redirectUri,
       grant_type: "authorization_code",
     }),
   });
@@ -64,13 +84,14 @@ export async function exchangeCodeForTokens(code: string): Promise<{
 }
 
 export async function refreshAccessToken(refreshToken: string): Promise<string> {
+  const googleEnv = getGoogleOAuthEnv();
   const res = await fetch(GOOGLE_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       refresh_token: refreshToken,
-      client_id: env.GOOGLE_CLIENT_ID,
-      client_secret: env.GOOGLE_CLIENT_SECRET,
+      client_id: googleEnv.clientId,
+      client_secret: googleEnv.clientSecret,
       grant_type: "refresh_token",
     }),
   });

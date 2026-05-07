@@ -1,5 +1,5 @@
 import prisma from "@ez-jira-log/db";
-import { env } from "@ez-jira-log/env/server";
+import { env } from "@ez-jira-log/env/cron";
 import webpush from "web-push";
 
 webpush.setVapidDetails(env.VAPID_SUBJECT, env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
