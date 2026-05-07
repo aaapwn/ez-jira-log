@@ -1,4 +1,4 @@
-FROM oven/bun:1 AS build
+FROM oven/bun:1 AS production
 
 ARG DATABASE_URL
 
@@ -15,19 +15,4 @@ RUN echo "DATABASE_URL=${DATABASE_URL}" > ./apps/server/.env
 
 RUN bunx turbo db:generate
 
-RUN bun build \
-    --compile \
-    --minify-whitespace \
-    --minify-syntax \
-    --target bun \
-    --outfile cron \
-    ./apps/server/src/scripts/cron.ts
-
-FROM gcr.io/distroless/cc-debian12 AS production
-
-WORKDIR /app
-
-COPY --from=build /app/cron /app/cron
-COPY --from=build /app/packages/db/prisma /app/packages/db/prisma
-
-CMD ["./cron", "checkin"]
+CMD ["bun", "run", "cron:checkin"]

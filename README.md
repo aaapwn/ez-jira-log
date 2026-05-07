@@ -261,18 +261,18 @@ Build and run a cron job:
 
 ```bash
 docker build -f apps/server/Dockerfile.cron -t ez-jira-log-cron .
-docker run --rm --env-file apps/server/.env ez-jira-log-cron checkin
-docker run --rm --env-file apps/server/.env ez-jira-log-cron checkout
-docker run --rm --env-file apps/server/.env ez-jira-log-cron monthly-reminder
+docker run --rm --env-file apps/server/.env ez-jira-log-cron bun run cron:checkin
+docker run --rm --env-file apps/server/.env ez-jira-log-cron bun run cron:checkout
+docker run --rm --env-file apps/server/.env ez-jira-log-cron bun run cron:monthly-reminder
 ```
 
 For Railway cron services, use `railway.cron.json` as the service config file. It defaults to the check-in job. For the other cron services, duplicate the service and override the Start Command and Cron Schedule:
 
 | Job | Railway Start Command | Railway Cron Schedule (UTC) |
 |-----|------------------------|-----------------------------|
-| Check-in | `./cron checkin` | `30 2 * * 1-5` |
-| Check-out | `./cron checkout` | `30 11 * * 1-5` |
-| Monthly reminder | `./cron monthly-reminder` | `0 2 1 * *` |
+| Check-in | `bun run cron:checkin` | `30 2 * * 1-5` |
+| Check-out | `bun run cron:checkout` | `30 11 * * 1-5` |
+| Monthly reminder | `bun run cron:monthly-reminder` | `0 2 1 * *` |
 
 The schedules above match Bangkok time: 09:30 check-in, 18:30 check-out, and 09:00 on the first day of the month.
 
