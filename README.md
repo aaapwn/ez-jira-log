@@ -9,7 +9,7 @@ Built with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-st
 - **Activity Aggregation** — View Jira issues, GitLab commits/MRs, and Google Calendar events in one place
 - **Jira Worklog Submission** — Submit and delete worklogs directly from the dashboard
 - **Worklog Templates** — Save frequently-used worklog entries and template sets for quick logging
-- **Automated Check-in/Check-out** — Cron jobs tick checkboxes in a Google Sheet at configurable times
+- **Check-in/Check-out Scripts** — Run scripts to tick checkboxes in a Google Sheet
 - **Web Push Notifications** — Get notified for check-in, check-out, and monthly reminders
 - **PWA** — Installable as a Progressive Web App on any device
 
@@ -196,6 +196,9 @@ This outputs a JSON with `publicKey` and `privateKey`. Use them for `VAPID_PUBLI
 |---------|-------------|
 | `bun run dev` | Start all apps in development mode |
 | `bun run build` | Build all apps |
+| `bun run cron:checkin` | Run the check-in script through Turbo |
+| `bun run cron:checkout` | Run the check-out script through Turbo |
+| `bun run cron:monthly-reminder` | Run the monthly reminder script through Turbo |
 | `bun run dev:web` | Start only the web app |
 | `bun run dev:server` | Start only the server |
 | `bun run check-types` | TypeScript type checking across all packages |
@@ -203,6 +206,23 @@ This outputs a JSON with `publicKey` and `privateKey`. Use them for `VAPID_PUBLI
 | `bun run db:generate` | Generate Prisma client |
 | `bun run db:migrate` | Run database migrations |
 | `bun run db:studio` | Open Prisma Studio (database GUI) |
+
+### Running Cron Scripts
+
+The API server no longer starts background cron jobs. Run the jobs explicitly from the repo root:
+
+```bash
+bun run cron:checkin
+bun run cron:checkout
+bun run cron:monthly-reminder
+```
+
+These root commands call Turbo and run the matching script in `apps/server`. To run a job for one user while developing, call the server package script directly:
+
+```bash
+cd apps/server
+bun run src/scripts/cron.ts checkin <userId>
+```
 
 ## UI Customization
 

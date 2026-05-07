@@ -3,7 +3,6 @@ import { auth } from "@ez-jira-log/auth";
 import { env } from "@ez-jira-log/env/server";
 import { Elysia } from "elysia";
 
-import { registerCron } from "./plugins/cron";
 import { activitiesRoutes } from "./routes/activities";
 import { calendarRoutes } from "./routes/calendar";
 import { checkinRoutes } from "./routes/checkin";
@@ -40,8 +39,6 @@ const app = new Elysia()
   .use(templatesRoutes)
   .use(templateSetsRoutes)
   .get("/", () => "OK");
-
-registerCron();
 
 app.listen(3000, () => {
   console.log("Server is running on http://localhost:3000");

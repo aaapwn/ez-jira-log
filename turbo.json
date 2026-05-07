@@ -13,6 +13,15 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "cron:checkin": {
+      "cache": false
+    },
+    "cron:checkout": {
+      "cache": false
+    },
+    "cron:monthly-reminder": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true

@@ -6,12 +6,14 @@
     "build": "tsdown",
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
+    "cron:checkin": "bun run src/scripts/cron.ts checkin",
+    "cron:checkout": "bun run src/scripts/cron.ts checkout",
+    "cron:monthly-reminder": "bun run src/scripts/cron.ts monthly-reminder",
     "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
-    "@elysiajs/cron": "^1.4.1",
     "@ez-jira-log/auth": "workspace:*",
     "@ez-jira-log/db": "workspace:*",
     "@ez-jira-log/env": "workspace:*",
