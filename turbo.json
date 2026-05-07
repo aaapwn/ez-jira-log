@@ -14,13 +14,35 @@
       "dependsOn": ["^check-types"]
     },
     "cron:checkin": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY",
+        "VAPID_SUBJECT"
+      ]
     },
     "cron:checkout": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY",
+        "VAPID_SUBJECT"
+      ]
     },
     "cron:monthly-reminder": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL",
+        "VAPID_PUBLIC_KEY",
+        "VAPID_PRIVATE_KEY",
+        "VAPID_SUBJECT"
+      ]
     },
     "dev": {
       "cache": false,
